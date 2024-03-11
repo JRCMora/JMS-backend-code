@@ -22,7 +22,7 @@ const transporter = require('./models/email');
 const Rubric = require('./models/rubric');
 const cors = require("cors");
 const { createReadStream } = require('fs');
-const VercelBlob = require('vercel-blob');
+const VercelBlob = require('@vercel/blob');
 app.use(cors());
 
 app.use(fileUpload());
