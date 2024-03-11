@@ -217,9 +217,9 @@ app.post('/register', async (req, res) => {
       subject: 'Email Verification',
       html: `<p>Hello ${firstName},</p>
          <p>Please click the following link to verify your email address:</p>
-         <p><a href="http://localhost:3000/verify/${verificationToken}?email=${email}" target="_blank">Verify Email</a></p>
+         <p><a href="https://jms-backend-testing.vercel.app/verify/${verificationToken}?email=${email}" target="_blank">Verify Email</a></p>
          <p>If the button above doesn't work, you can also paste this link into your browser:</p>
-         <p>http://localhost:3000/verify/${verificationToken}?email=${email}</p>
+         <p>https://jms-backend-testing.vercel.app/verify/${verificationToken}?email=${email}</p>
          <p>The link is valid for 10 minutes</p>`
     };
 
@@ -247,7 +247,7 @@ app.get('/verify/:token', async (req, res) => {
 
     // Check if the token has expired or user not found
     if (!user || user.verificationTokenExpires < new Date()) {
-      return res.redirect(`http://localhost:4200/verify-email-result?success=false&email=${user.email}`);
+      return res.redirect(`https://jmshau.site/verify-email-result?success=false&email=${user.email}`);
     }
 
     // Update user status to verified
@@ -257,7 +257,7 @@ app.get('/verify/:token', async (req, res) => {
     await user.save();
 
     // Redirect with success=true if verification succeeds
-    res.redirect(`http://localhost:4200/verify-email-result?success=true&email=${user.email}`);
+    res.redirect(`https://jmshau.site/verify-email-result?success=true&email=${user.email}`);
   } catch (error) {
     console.error('Verification error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -290,9 +290,9 @@ app.post('/resend-verification-email', async (req, res) => {
       subject: 'Email Verification',
       html: `<p>Hello ${user.firstName},</p>
          <p>Please click the following link to verify your email address:</p>
-         <p><a href="http://localhost:3000/verify/${verificationToken}?email=${email}" target="_blank">Verify Email</a></p>
+         <p><a href="https://jms-backend-testing.vercel.app/verify/${verificationToken}?email=${email}" target="_blank">Verify Email</a></p>
          <p>If the button above doesn't work, you can also paste this link into your browser:</p>
-         <p>http://localhost:3000/verify/${verificationToken}?email=${email}</p>
+         <p>https://jms-backend-testing.vercel.app/verify/${verificationToken}?email=${email}</p>
          <p>The link is valid for 10 minutes</p>`
     };
 
@@ -332,9 +332,9 @@ app.post('/forgot-password', async (req, res) => {
       to: email,
       subject: 'Reset Password',
       html: `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p>
-            <p><a href="http://localhost:4200/reset-password/${resetToken}" target="_blank">Reset Password</a></p>
+            <p><a href="https://jmshau.site/reset-password/${resetToken}" target="_blank">Reset Password</a></p>
              <p>Please click on the following link, or paste this into your browser to complete the process:</p>
-             <p>http://localhost:4200/reset-password/${resetToken}</p>
+             <p>https://jmshau.site/reset-password/${resetToken}</p>
              <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`
     };
     transporter.sendMail(mailOptions, (error, info) => {
