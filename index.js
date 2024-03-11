@@ -22,7 +22,6 @@ const transporter = require('./models/email');
 const Rubric = require('./models/rubric');
 const cors = require("cors");
 const { put } = require('@vercel/blob');
-const vercelBlobToken = process.env.BLOB_READ_WRITE_TOKEN; 
 const containerName = 'jms-uploads';
 
 // Multer configuration
