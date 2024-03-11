@@ -21,7 +21,7 @@ const crypto = require('crypto');
 const transporter = require('./models/email');
 const Rubric = require('./models/rubric');
 const cors = require("cors");
-server.use(cors());
+app.use(cors());
 
 app.use(fileUpload());
 app.use('/uploads', express.static('uploads'));
