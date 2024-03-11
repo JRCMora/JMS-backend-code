@@ -21,8 +21,6 @@ const crypto = require('crypto');
 const transporter = require('./models/email');
 const Rubric = require('./models/rubric');
 const cors = require("cors");
-const { createReadStream } = require('fs');
-const VercelBlob = require('@vercel/blob');
 app.use(cors());
 
 app.use(fileUpload());
@@ -437,34 +435,27 @@ app.get('/journals', async (req, res) => {
 app.post('/journals', async (req, res) => {
   try {
     const { journalTitle, authors, abstract, keywords, userId } = req.body; // Add userId to the request body
-
+    
     // Check if file exists in request
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ error: 'No files were uploaded.' });
     }
 
     const journalFile = req.files.journalFile; // Access the uploaded file
-    const blob = new VercelBlob(); // Create a Vercel Blob instance
 
-    // Upload the file to Vercel Blob
-    const uploadedFile = await blob.uploadFile({
-      file: createReadStream(journalFile.tempFilePath), // Use createReadStream for the uploaded file
-      contentType: journalFile.mimetype, // Specify the file's mimetype
+    // Move the uploaded file to a specific directory
+    const filePath = `uploads/${journalFile.name}`;
+    journalFile.mv(filePath, async function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      // Create a new journal entry in the database
+      const journal = new Journal({ journalTitle, authors, abstract, keywords, filePath, submittedBy: userId }); // Store the userId with the journal
+      await journal.save();
+
+      res.json({ message: 'Journal submitted successfully' });
     });
-
-    // Create a new journal entry in the database
-    const journal = new Journal({
-      journalTitle,
-      authors,
-      abstract,
-      keywords,
-      filePath: uploadedFile.url, // Store the uploaded file URL
-      submittedBy: userId,
-    });
-
-    await journal.save();
-
-    res.json({ message: 'Journal submitted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
