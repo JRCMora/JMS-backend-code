@@ -461,7 +461,7 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       contentType: file.mimetype, // Optional: Specify content type
       access: 'public', // Optional: Set access permissions
     });
-
+    console.log(uploadResponse);
     if (!uploadResponse.succeeded) {
       return res.status(500).json({ error: 'Failed to upload file to Vercel Blob storage' });
     }
