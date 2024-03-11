@@ -22,18 +22,6 @@ const Rubric = require('./models/rubric');
 const cors = require("cors");
 const { put } = require('@vercel/blob');
 const vercelBlobToken = process.env.VERCEL_BLOB_READ_WRITE_TOKEN; 
-app.use(cors());
-
-app.use('/uploads', express.static('uploads'));
-
-app.use((req, res, next) => { 
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers",  
-    "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  next(); 
-});
-
 const containerName = 'jms-uploads';
 
 // Configure Multer for file upload (with validation)
@@ -50,6 +38,19 @@ const upload = multer({
     cb(null, true);
   },
 });
+app.use(cors());
+
+app.use('/uploads', express.static('uploads'));
+
+app.use((req, res, next) => { 
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers",  
+    "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  next(); 
+});
+
+
 
 // Retrieve all users or users by role
 app.get('/users', async (req, res) => {
