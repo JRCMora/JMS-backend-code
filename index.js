@@ -21,7 +21,8 @@ const crypto = require('crypto');
 const transporter = require('./models/email');
 const Rubric = require('./models/rubric');
 const cors = require("cors");
-const { BlobServiceClient } = require('@vercel/blob');
+const { put } = require('@vercel/blob');
+const vercelBlobToken = process.env.VERCEL_BLOB_READ_WRITE_TOKEN; 
 app.use(cors());
 
 app.use(fileUpload());
@@ -33,10 +34,6 @@ app.use((req, res, next) => {
     "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   next(); 
-});
-
-const blobServiceClient = new BlobServiceClient({
-  token: process.env.BLOB_READ_WRITE_TOKEN, // Replace with your actual token
 });
 
 const containerName = 'jms-uploads';
@@ -465,11 +462,13 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
 
     const file = req.file; // Access the uploaded file details
 
-    // Upload the file to Vercel Blob storage
-    const containerClient = blobServiceClient.getContainerClient(containerName);
+    // Upload the file to Vercel Blob using read-write token
     const blobName = `${Date.now()}-${file.originalname}`; // Create a unique blob name
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-    const uploadResponse = await blockBlobClient.uploadStreaming(file.buffer, file.size);
+    const uploadResponse = await put(blobName, file.buffer, {
+      token: vercelBlobToken, // Use read-write token for authentication
+      contentType: file.mimetype, // Optional: Specify content type
+      access: 'public', // Optional: Set access permissions
+    });
 
     if (!uploadResponse.succeeded) {
       return res.status(500).json({ error: 'Failed to upload file to Vercel Blob storage' });
