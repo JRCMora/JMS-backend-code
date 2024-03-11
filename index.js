@@ -463,7 +463,7 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       access: 'public', // Optional: Set access permissions
     });
     console.log(uploadResponse);
-    
+
     if (!uploadResponse || uploadResponse.error) {
       // Handle the error appropriately
       return res.status(500).json({ error: 'Failed to upload file to Vercel Blob storage' });
@@ -476,11 +476,12 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       authors,
       abstract,
       filePath,
+      downloadUrl: uploadResponse.downloadUrl,
       submittedBy: userId,
     });
     await journal.save();
 
-    res.json({ message: 'Journal submitted successfully' });
+    res.json({ message: 'Journal submitted successfully', downloadUrl: uploadResponse.downloadUrl,});
   } catch (error) {
     console.error(error); // Log the error for debugging
     res.status(500).json({ error: 'An error occurred during journal submission' });
