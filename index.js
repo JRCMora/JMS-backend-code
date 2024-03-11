@@ -24,6 +24,7 @@ const cors = require("cors");
 const { put } = require('@vercel/blob');
 const containerName = 'jms-uploads';
 
+
 // Multer configuration
 const upload = multer({
   storage: multer.memoryStorage(), // Store files in memory for now
@@ -42,7 +43,7 @@ app.use((req, res, next) => {
   next(); 
 });
 
-
+app.use(express.urlencoded({ extended: true }));
 
 // Retrieve all users or users by role
 app.get('/users', async (req, res) => {
