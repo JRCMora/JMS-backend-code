@@ -25,20 +25,12 @@ const { put } = require('@vercel/blob');
 const vercelBlobToken = process.env.BLOB_READ_WRITE_TOKEN; 
 const containerName = 'jms-uploads';
 
-// Configure Multer for file upload (with validation)
+// Multer configuration
 const upload = multer({
-  storage: multer.memoryStorage(), // Store files in memory for security
+  storage: multer.memoryStorage(), // Store files in memory for now
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB (adjust as needed)
-  fileFilter: (req, file, cb) => {
-    // Validate file type (optional)
-    const allowedExtensions = ['.pdf']; // Allowed file types
-    const extension = path.extname(file.originalname).toLowerCase();
-    if (!allowedExtensions.includes(extension)) {
-      return cb(new Error('Unsupported file type'));
-    }
-    cb(null, true);
-  },
 });
+
 app.use(cors());
 
 app.use('/uploads', express.static('uploads'));
@@ -465,7 +457,7 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
     // Upload the file to Vercel Blob using read-write token
     const blobName = `${Date.now()}-${file.originalname}`; // Create a unique blob name
     const uploadResponse = await put(blobName, file.buffer, {
-      token: vercelBlobToken, // Use read-write token for authentication
+      token: process.env.BLOB_READ_WRITE_TOKEN, // Use read-write token for authentication
       contentType: file.mimetype, // Optional: Specify content type
       access: 'public', // Optional: Set access permissions
     });
