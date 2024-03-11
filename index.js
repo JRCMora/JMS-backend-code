@@ -16,7 +16,6 @@ const Journal = require('./models/journal');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const Notification = require('./models/notification');
-const fileUpload = require('express-fileupload');
 const crypto = require('crypto');
 const transporter = require('./models/email');
 const Rubric = require('./models/rubric');
@@ -25,7 +24,6 @@ const { put } = require('@vercel/blob');
 const vercelBlobToken = process.env.VERCEL_BLOB_READ_WRITE_TOKEN; 
 app.use(cors());
 
-app.use(fileUpload());
 app.use('/uploads', express.static('uploads'));
 
 app.use((req, res, next) => { 
@@ -38,7 +36,7 @@ app.use((req, res, next) => {
 
 const containerName = 'jms-uploads';
 
-// Configure Multer for file upload (optional for stricter validation)
+// Configure Multer for file upload (with validation)
 const upload = multer({
   storage: multer.memoryStorage(), // Store files in memory for security
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB (adjust as needed)
