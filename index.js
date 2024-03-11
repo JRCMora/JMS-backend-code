@@ -21,6 +21,7 @@ const crypto = require('crypto');
 const transporter = require('./models/email');
 const Rubric = require('./models/rubric');
 const cors = require("cors");
+const { BlobServiceClient } = require('@vercel/blob');
 app.use(cors());
 
 app.use(fileUpload());
@@ -32,6 +33,27 @@ app.use((req, res, next) => {
     "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   next(); 
+});
+
+const blobServiceClient = new BlobServiceClient({
+  token: process.env.BLOB_READ_WRITE_TOKEN, // Replace with your actual token
+});
+
+const containerName = 'jms-uploads';
+
+// Configure Multer for file upload (optional for stricter validation)
+const upload = multer({
+  storage: multer.memoryStorage(), // Store files in memory for security
+  limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB (adjust as needed)
+  fileFilter: (req, file, cb) => {
+    // Validate file type (optional)
+    const allowedExtensions = ['.pdf']; // Allowed file types
+    const extension = path.extname(file.originalname).toLowerCase();
+    if (!allowedExtensions.includes(extension)) {
+      return cb(new Error('Unsupported file type'));
+    }
+    cb(null, true);
+  },
 });
 
 // Retrieve all users or users by role
@@ -432,34 +454,46 @@ app.get('/journals', async (req, res) => {
 });
 
 // Submit a new journal with file upload
-app.post('/journals', async (req, res) => {
+app.post('/journals', upload.single('journalFile'), async (req, res) => {
   try {
-    const { journalTitle, authors, abstract, keywords, userId } = req.body; // Add userId to the request body
-    
+    const { journalTitle, authors, abstract, keywords, userId } = req.body;
+
     // Check if file exists in request
-    if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).json({ error: 'No files were uploaded.' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded.' });
     }
 
-    const journalFile = req.files.journalFile; // Access the uploaded file
+    const file = req.file; // Access the uploaded file details
 
-    // Move the uploaded file to a specific directory
-    const filePath = `uploads/${journalFile.name}`;
-    journalFile.mv(filePath, async function(err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      
-      // Create a new journal entry in the database
-      const journal = new Journal({ journalTitle, authors, abstract, keywords, filePath, submittedBy: userId }); // Store the userId with the journal
-      await journal.save();
+    // Upload the file to Vercel Blob storage
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blobName = `${Date.now()}-${file.originalname}`; // Create a unique blob name
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    const uploadResponse = await blockBlobClient.uploadStreaming(file.buffer, file.size);
 
-      res.json({ message: 'Journal submitted successfully' });
+    if (!uploadResponse.succeeded) {
+      return res.status(500).json({ error: 'Failed to upload file to Vercel Blob storage' });
+    }
+
+    // Create a new journal entry in the database
+    const filePath = `vercel-blob:${containerName}/${blobName}`; // Store the Vercel Blob storage reference
+    const journal = new Journal({
+      journalTitle,
+      authors,
+      abstract,
+      keywords,
+      filePath,
+      submittedBy: userId,
     });
+    await journal.save();
+
+    res.json({ message: 'Journal submitted successfully' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error); // Log the error for debugging
+    res.status(500).json({ error: 'An error occurred during journal submission' });
   }
 });
+
 
 // Add a route to fetch journals submitted by a specific user
 app.get('/user/:userId/journals', async (req, res) => {
