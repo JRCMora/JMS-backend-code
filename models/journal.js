@@ -9,6 +9,7 @@ const journalSchema = new mongoose.Schema({
   keywords: [String],
   submissionDate: Date,
   filePath: String,
+  downloadUrl: String,
   status: {
     type: String,
     enum: ['Pending', 'Under Review', 'Accepted', 'Rejected', 'Needs Revision', 'Reviewed'],
