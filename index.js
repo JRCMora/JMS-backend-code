@@ -17,6 +17,7 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const Notification = require('./models/notification');
 const crypto = require('crypto');
+const path = require('path');
 const transporter = require('./models/email');
 const Rubric = require('./models/rubric');
 const cors = require("cors");
@@ -452,7 +453,7 @@ app.get('/journals', async (req, res) => {
 // Submit a new journal with file upload
 app.post('/journals', upload.single('journalFile'), async (req, res) => {
   try {
-    const { journalTitle, authors, abstract, keywords, userId } = req.body;
+    const { journalTitle, authors, abstract, userId } = req.body;
 
     // Check if file exists in request
     if (!req.file) {
@@ -479,7 +480,6 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       journalTitle,
       authors,
       abstract,
-      keywords,
       filePath,
       submittedBy: userId,
     });
