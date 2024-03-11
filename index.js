@@ -455,7 +455,8 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
     const file = req.file; // Access the uploaded file details
 
     // Upload the file to Vercel Blob using read-write token
-    const blobName = `${Date.now()}-${file.originalname}`; // Create a unique blob name
+    const blobName = `${Date.now()}-${file.originalname}`;
+    console.log(blobName); // Create a unique blob name
     const uploadResponse = await put(blobName, file.buffer, {
       token: process.env.BLOB_READ_WRITE_TOKEN, // Use read-write token for authentication
       contentType: file.mimetype, // Optional: Specify content type
