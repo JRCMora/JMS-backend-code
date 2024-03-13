@@ -29,6 +29,13 @@ const containerName = 'jms-uploads';
 const upload = multer({
   storage: multer.memoryStorage(), // Store files in memory for now
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB (adjust as needed)
+  fileFilter: function (req, file, cb) {
+    // Check if the uploaded file is a PDF
+    if (file.mimetype !== 'application/pdf') {
+      return cb(new Error('Only PDF files are allowed'));
+    }
+    cb(null, true);
+  }
 });
 
 app.use(cors());
