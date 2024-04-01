@@ -763,6 +763,18 @@ app.post('/journals/:journalId/submit-feedback', async (req, res) => {
       status: 'unread'
     });
 
+    // Send notification to admins
+    const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+    const notificationPromises = admins.map(admin => {
+      return Notification.create({
+        recipient: admin._id, // Assuming admin has a unique ID
+        message: `The "${journal.journalTitle}" has been "${journal.status}".`, // Customize your message
+        status: 'unread' // Set the status as unread
+      });
+    });
+    await Promise.all(notificationPromises);
+
+
     res.json({ message: 'Feedback submitted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
