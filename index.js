@@ -487,7 +487,7 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       submittedBy: userId,
     });
     await journal.save();
-    
+
     // Send notification to admins
     const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
     const notificationPromises = admins.map(admin => {
@@ -505,7 +505,6 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
     res.status(500).json({ error: 'An error occurred during journal submission' });
   }
 });
-
 
 // Add a route to fetch journals submitted by a specific user
 app.get('/user/:userId/journals', async (req, res) => {
@@ -635,8 +634,6 @@ app.get('/notifications/:userId', async (req, res) => {
   }
 });
 
-
-
 // Add a route to mark a notification as read
 app.put('/notifications/:notificationId/mark-as-read', async (req, res) => {
   try {
@@ -650,6 +647,33 @@ app.put('/notifications/:notificationId/mark-as-read', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Endpoint to send notifications to admins when a journal is submitted
+app.post('/admin-notifications', async (req, res) => {
+  try {
+    // Retrieve all admins from the database
+    const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+
+    // Create notifications for each admin
+    const notificationPromises = admins.map(admin => {
+      return Notification.create({
+        recipient: admin._id, // Assuming admin has a unique ID
+        message: 'A new journal has been submitted.', // Customize your message
+        status: 'unread' // Set the status as unread
+      });
+    });
+
+    // Wait for all notifications to be created
+    await Promise.all(notificationPromises);
+
+    // Send response
+    res.json({ message: 'Admin notifications sent successfully' });
+  } catch (error) {
+    console.error('Error sending admin notifications:', error);
+    res.status(500).json({ error: 'An error occurred while sending admin notifications' });
+  }
+});
+
 
 // Modify the route to accept an array of reviewer IDs
 app.post('/user/reviewers', async (req, res) => {
