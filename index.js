@@ -547,6 +547,25 @@ app.get('/journals/:journalId', async (req, res) => {
   }
 });
 
+app.put('/journals/:journalId', async (req, res) => {
+  const journalId = req.params.journalId;
+  const updatedData = req.body;
+
+  try {
+    // Find the journal by ID and update it with the new data
+    const updatedJournal = await Journal.findByIdAndUpdate(journalId, updatedData, { new: true });
+
+    if (!updatedJournal) {
+      return res.status(404).json({ message: 'Journal not found' });
+    }
+
+    res.json(updatedJournal); // Return the updated journal
+  } catch (error) {
+    console.error('Error updating journal:', error);
+    res.status(500).json({ message: 'Internal server error' }); // Handle server error
+  }
+});
+
 // Add a route for assigning reviewers to journals
 app.post('/journals/:journalId/assign-reviewers', async (req, res) => {
   try {
