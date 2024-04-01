@@ -487,6 +487,17 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       submittedBy: userId,
     });
     await journal.save();
+    
+    // Send notification to admins
+    const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+    const notificationPromises = admins.map(admin => {
+      return Notification.create({
+        recipient: admin._id, // Assuming admin has a unique ID
+        message: 'A new journal has been submitted.', // Customize your message
+        status: 'unread' // Set the status as unread
+      });
+    });
+    await Promise.all(notificationPromises);
 
     res.json({ message: 'Journal submitted successfully', downloadUrl: uploadResponse.downloadUrl,});
   } catch (error) {
