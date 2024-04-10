@@ -171,8 +171,17 @@ app.get('/rubrics/:rubricId', async (req, res) => {
   }
 });
 
-
-
+// Delete a user by ID
+app.delete('/rubrics/:rubricId', async (req, res) => {
+  try {
+    const { rubricId } = req.params;
+    // Delete the user by ID
+    await Rubric.findByIdAndDelete(rubricId);
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Add a route to change a user's password
 app.post('/users/:userId/change-password', async (req, res) => {
