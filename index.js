@@ -492,6 +492,18 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
           }
         }
       );
+
+      // Send notification to admins
+      const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+      const notificationPromises = admins.map(admin => {
+        return Notification.create({
+          recipient: admin._id, // Assuming admin has a unique ID
+          message: `A revised journal '${journalTitle}' has been submitted.`, // Customize your message
+          status: 'unread' // Set the status as unread
+        });
+      });
+      await Promise.all(notificationPromises);
+
       res.json({ message: 'Revised journal submitted successfully', downloadUrl: uploadResponse.downloadUrl });
     } else {
       // Create a new journal entry in the database
