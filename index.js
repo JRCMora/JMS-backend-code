@@ -760,10 +760,10 @@ app.post('/journals/:journalId/submit-feedback', async (req, res) => {
       return res.status(404).json({ error: 'Journal not found' });
     }
 
-    // Check if the reviewer has already submitted feedback
-    if (journal.reviewComments.some(comment => String(comment.reviewer) === String(userId))) {
-      return res.status(400).json({ error: 'Feedback already submitted by this reviewer' });
-    }
+    // // Check if the reviewer has already submitted feedback
+    // if (journal.reviewComments.some(comment => String(comment.reviewer) === String(userId))) {
+    //   return res.status(400).json({ error: 'Feedback already submitted by this reviewer' });
+    // }
 
     // Add the review comment to the journal
     journal.reviewComments.push({ reviewer: userId, comment: feedback }); // Use userId instead of reviewerId
