@@ -750,53 +750,47 @@ app.get('/user/reviewers/:userId/assigned-journals', async (req, res) => {
 app.post('/journals/:journalId/submit-feedback', async (req, res) => {
   try {
     const { journalId } = req.params;
-    const { feedback, choice, userId } = req.body; // Include userId in the request body
+    const { feedback, choice, userId } = req.body;
 
-    // Ensure req.userId contains the authenticated user's ID or retrieve it from req.body if needed
-
-    // Find the journal by ID
     const journal = await Journal.findById(journalId);
     if (!journal) {
       return res.status(404).json({ error: 'Journal not found' });
     }
 
-    // // Check if the reviewer has already submitted feedback
-    // if (journal.reviewComments.some(comment => String(comment.reviewer) === String(userId))) {
-    //   return res.status(400).json({ error: 'Feedback already submitted by this reviewer' });
-    // }
-
-    // Add the review comment to the journal
-    journal.reviewComments.push({ reviewer: userId, comment: feedback }); // Use userId instead of reviewerId
+    // Find the index of the reviewer's previous feedback
+    const previousFeedbackIndex = journal.reviewComments.findIndex(comment => String(comment.reviewer) === String(userId));
+    if (previousFeedbackIndex !== -1) {
+      // If the reviewer has provided feedback before, update the existing feedback
+      journal.reviewComments[previousFeedbackIndex].comment = feedback;
+    } else {
+      // If the reviewer is providing feedback for the first time, add a new entry
+      journal.reviewComments.push({ reviewer: userId, comment: feedback });
+    }
 
     // Store the choice made by the reviewer
     const reviewerIndex = journal.reviewers.findIndex(reviewer => String(reviewer) === String(userId));
     if (reviewerIndex !== -1) {
-      journal.reviewerChoices.push({ reviewer: userId, choice }); // Use userId instead of reviewerId
+      journal.reviewerChoices.push({ reviewer: userId, choice });
     } else {
       return res.status(400).json({ error: 'You are not assigned as a reviewer for this journal' });
     }
 
-    // Check if all reviewers have submitted their feedback
     const totalReviewers = journal.reviewers.length;
     const feedbackCount = journal.reviewComments.length;
     if (feedbackCount === totalReviewers) {
-      // Update the journal status to 'Reviewed' if all reviewers have submitted feedback
       if (journal.status !== 'Reviewed') {
         journal.status = 'Reviewed';
-        // Send notification to the user who submitted the journal
         const notification = await Notification.create({
           recipient: journal.submittedBy._id,
-          message: `The status of your journal "${journal.journalTitle}" has been updated to "${journal.status}".`, // Customize your message
+          message: `The status of your journal "${journal.journalTitle}" has been updated to "${journal.status}".`,
           status: 'unread'
         });
-
-        // Send notification to admins for 'Reviewed' status only once
-        const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+        const admins = await User.find({ role: 'admin' });
         const notificationPromises = admins.map(admin => {
           return Notification.create({
-            recipient: admin._id, // Assuming admin has a unique ID
-            message: `The "${journal.journalTitle}" has been "${journal.status}".`, // Customize your message
-            status: 'unread' // Set the status as unread
+            recipient: admin._id,
+            message: `The "${journal.journalTitle}" has been "${journal.status}".`,
+            status: 'unread'
           });
         });
         await Promise.all(notificationPromises);
@@ -804,13 +798,12 @@ app.post('/journals/:journalId/submit-feedback', async (req, res) => {
     }
     await journal.save();
 
-
-
     res.json({ message: 'Feedback submitted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Add a route to submit consolidated feedback for a journal
 app.post('/journals/:journalId/submit-consolidated-feedback', async (req, res) => {
