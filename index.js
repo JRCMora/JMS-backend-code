@@ -624,7 +624,7 @@ app.put('/journals/:journalId/update-status', async (req, res) => {
     }
     // Send notification to the user who submitted the journal
     const notification = await Notification.create({
-      recipient: submittedBy,
+      recipient: submittedById,
       message: `The status of your journal "${journal.journalTitle}" has been updated to "${status}".`, // Customize your message
       status: 'unread'
     });
