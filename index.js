@@ -762,17 +762,12 @@ app.post('/journals/:journalId/submit-feedback', async (req, res) => {
     if (previousFeedbackIndex !== -1) {
       // If the reviewer has provided feedback before, update the existing feedback
       journal.reviewComments[previousFeedbackIndex].comment = feedback;
+      // Also update the choice made by the reviewer
+      journal.reviewerChoices[previousFeedbackIndex].choice = choice;
     } else {
       // If the reviewer is providing feedback for the first time, add a new entry
       journal.reviewComments.push({ reviewer: userId, comment: feedback });
-    }
-
-    // Store the choice made by the reviewer
-    const reviewerIndex = journal.reviewers.findIndex(reviewer => String(reviewer) === String(userId));
-    if (reviewerIndex !== -1) {
       journal.reviewerChoices.push({ reviewer: userId, choice });
-    } else {
-      return res.status(400).json({ error: 'You are not assigned as a reviewer for this journal' });
     }
 
     const totalReviewers = journal.reviewers.length;
@@ -799,37 +794,6 @@ app.post('/journals/:journalId/submit-feedback', async (req, res) => {
     await journal.save();
 
     res.json({ message: 'Feedback submitted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-// Add a route to submit consolidated feedback for a journal
-app.post('/journals/:journalId/submit-consolidated-feedback', async (req, res) => {
-  try {
-    const { journalId } = req.params;
-    const { consolidatedFeedback, adminChoice } = req.body; 
-
-    // Find the journal by ID
-    const journal = await Journal.findById(journalId);
-    if (!journal) {
-      return res.status(404).json({ error: 'Journal not found' });
-    }
-
-
-    journal.consolidatedFeedback = consolidatedFeedback;
-    journal.status = adminChoice; 
-    await journal.save();
-
-    // Send notification to the user who submitted the journal
-    const notification = await Notification.create({
-      recipient: journal.submittedBy._id,
-      message: `The status of your journal "${journal.journalTitle}" has been updated to "${adminChoice}".`, // Customize your message
-      status: 'unread'
-    });
-
-    res.json({ message: 'Consolidated feedback submitted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
