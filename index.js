@@ -495,16 +495,30 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
         }
       );
 
-      // Send notification to admins
-      const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
-      const notificationPromises = admins.map(admin => {
+      // Send notification to assigned reviewers
+      const journal = await Journal.findById(journalId).populate('reviewers');
+      const reviewers = journal.reviewers;
+      const notificationPromises = reviewers.map(reviewer => {
         return Notification.create({
-          recipient: admin._id, // Assuming admin has a unique ID
-          message: `A revised version of the journal '${journalTitle}' has been submitted.`, // Customize your message
+          recipient: reviewer._id, // Assign notification to reviewer
+          message: `A revised version of the journal '${journalTitle}' is assigned to you for review.`,
           status: 'unread' // Set the status as unread
         });
       });
       await Promise.all(notificationPromises);
+
+      // Send notification to admins
+      const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+      const adminNotificationPromises = admins.map(admin => {
+        return Notification.create({
+          recipient: admin._id, // Assuming admin has a unique ID
+          message: `A revised version of the journal '${journalTitle}' has been submitted.`,
+          status: 'unread' // Set the status as unread
+        });
+      });
+      await Promise.all(adminNotificationPromises);
+
+
 
       res.json({ message: 'Revised journal submitted successfully', downloadUrl: uploadResponse.downloadUrl });
     } else {
