@@ -12,7 +12,7 @@ const journalSchema = new mongoose.Schema({
   downloadUrl: String,
   status: {
     type: String,
-    enum: ['Pending', 'Under Review', 'Accepted', 'Rejected', 'Needs Revision', 'Reviewed'],
+    enum: ['Pending', 'Under Review', 'Accepted', 'Rejected', 'Needs Revision', 'Reviewed', 'Under Review (Revision)'],
     default: 'Pending'
   },
   reviewers: [{
