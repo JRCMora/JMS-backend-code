@@ -68,6 +68,41 @@ app.get('/users', async (req, res) => {
   }
 });
 
+// Update user information
+app.put('/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userData = req.body; // Get user data from request body
+
+    // Check if the user ID is valid
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    // Find the user by ID in the database
+    let user = await User.findById(userId);
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update user data
+    user.role = userData.role;
+
+    // Save the updated user data
+    user = await user.save();
+
+    // Send the updated user data as the response
+    res.json(user);
+  } catch (error) {
+    // Handle any errors that occur during the process
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
+
 // Delete a user by ID
 app.delete('/users/:userId', async (req, res) => {
   try {
@@ -196,6 +231,7 @@ app.get('/users/:userId', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
+
 
 
 
