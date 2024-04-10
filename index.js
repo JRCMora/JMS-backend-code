@@ -489,6 +489,8 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
             filePath: `vercel-blob:${containerName}/${blobName}`,
             downloadUrl: uploadResponse.downloadUrl,
             submittedBy: userId,
+            reviewComments: [], // Clear reviewComments array
+            reviewerChoices: [] // Clear reviewerChoices array
           }
         }
       );
