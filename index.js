@@ -618,9 +618,13 @@ app.put('/journals/:journalId/update-status', async (req, res) => {
       return res.status(404).json({ error: 'Journal not found' });
     }
 
+    const submittedById = journal.submittedBy ? journal.submittedBy._id : null;
+    if (!submittedById) {
+      return res.status(400).json({ error: 'Submitted by user ID not found' });
+    }
     // Send notification to the user who submitted the journal
     const notification = await Notification.create({
-      recipient: journal.submittedBy._id,
+      recipient: submittedBy,
       message: `The status of your journal "${journal.journalTitle}" has been updated to "${status}".`, // Customize your message
       status: 'unread'
     });
