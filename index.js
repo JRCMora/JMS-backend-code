@@ -799,6 +799,36 @@ app.post('/journals/:journalId/submit-feedback', async (req, res) => {
   }
 });
 
+// Add a route to submit consolidated feedback for a journal
+app.post('/journals/:journalId/submit-consolidated-feedback', async (req, res) => {
+  try {
+    const { journalId } = req.params;
+    const { consolidatedFeedback, adminChoice } = req.body; 
+
+    // Find the journal by ID
+    const journal = await Journal.findById(journalId);
+    if (!journal) {
+      return res.status(404).json({ error: 'Journal not found' });
+    }
+
+
+    journal.consolidatedFeedback = consolidatedFeedback;
+    journal.status = adminChoice; 
+    await journal.save();
+
+    // Send notification to the user who submitted the journal
+    const notification = await Notification.create({
+      recipient: journal.submittedBy._id,
+      message: `The status of your journal "${journal.journalTitle}" has been updated to "${adminChoice}".`, // Customize your message
+      status: 'unread'
+    });
+
+    res.json({ message: 'Consolidated feedback submitted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Add a route to fetch consolidated feedback for a specific journal
 app.get('/journals/:journalId/consolidated-feedback', async (req, res) => {
   try {
