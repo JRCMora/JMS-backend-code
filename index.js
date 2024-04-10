@@ -449,10 +449,10 @@ app.get('/journals', async (req, res) => {
   }
 });
 
-// Submit a new journal with file upload
+// Handle both new journal submissions and revisions
 app.post('/journals', upload.single('journalFile'), async (req, res) => {
   try {
-    const { journalTitle, authors, abstract, userId } = req.body;
+    const { journalTitle, authors, abstract, userId, journalId } = req.body;
 
     // Check if file exists in request
     if (!req.file) {
@@ -476,30 +476,48 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       return res.status(500).json({ error: 'Failed to upload file to Vercel Blob storage' });
     }
 
-    // Create a new journal entry in the database
-    const filePath = `vercel-blob:${containerName}/${blobName}`; // Store the Vercel Blob storage reference
-    const journal = new Journal({
-      journalTitle,
-      authors,
-      abstract,
-      filePath,
-      downloadUrl: uploadResponse.downloadUrl,
-      submittedBy: userId,
-    });
-    await journal.save();
-
-    // Send notification to admins
-    const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
-    const notificationPromises = admins.map(admin => {
-      return Notification.create({
-        recipient: admin._id, // Assuming admin has a unique ID
-        message: 'A new journal has been submitted.', // Customize your message
-        status: 'unread' // Set the status as unread
+    // If journalId is provided, it means this is a revised journal
+    if (journalId) {
+      // Update the existing journal entry in the database with the revised details
+      await Journal.findOneAndUpdate(
+        { _id: journalId },
+        {
+          $set: {
+            journalTitle,
+            authors,
+            abstract,
+            filePath: `vercel-blob:${containerName}/${blobName}`,
+            downloadUrl: uploadResponse.downloadUrl,
+            submittedBy: userId,
+          }
+        }
+      );
+      res.json({ message: 'Revised journal submitted successfully', downloadUrl: uploadResponse.downloadUrl });
+    } else {
+      // Create a new journal entry in the database
+      const journal = new Journal({
+        journalTitle,
+        authors,
+        abstract,
+        filePath: `vercel-blob:${containerName}/${blobName}`,
+        downloadUrl: uploadResponse.downloadUrl,
+        submittedBy: userId,
       });
-    });
-    await Promise.all(notificationPromises);
+      await journal.save();
 
-    res.json({ message: 'Journal submitted successfully', downloadUrl: uploadResponse.downloadUrl,});
+      // Send notification to admins
+      const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+      const notificationPromises = admins.map(admin => {
+        return Notification.create({
+          recipient: admin._id, // Assuming admin has a unique ID
+          message: 'A new journal has been submitted.', // Customize your message
+          status: 'unread' // Set the status as unread
+        });
+      });
+      await Promise.all(notificationPromises);
+
+      res.json({ message: 'Journal submitted successfully', downloadUrl: uploadResponse.downloadUrl });
+    }
   } catch (error) {
     console.error(error); // Log the error for debugging
     res.status(500).json({ error: 'An error occurred during journal submission' });
