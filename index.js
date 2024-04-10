@@ -498,7 +498,7 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       const notificationPromises = admins.map(admin => {
         return Notification.create({
           recipient: admin._id, // Assuming admin has a unique ID
-          message: `A revised journal '${journalTitle}' has been submitted.`, // Customize your message
+          message: `A revised version of the journal '${journalTitle}' has been submitted.`, // Customize your message
           status: 'unread' // Set the status as unread
         });
       });
