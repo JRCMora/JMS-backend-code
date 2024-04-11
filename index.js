@@ -510,19 +510,19 @@ app.get('/journal-status-statistics', async (req, res) => {
       }
     });
 
-    // Format data for ngx-charts
-    const chartData = [];
+    // Calculate percentages
+    const totalCount = journals.length;
+    const statusPercentages = {};
     for (const status in statusCounts) {
-      chartData.push({ name: status, value: statusCounts[status] });
+      statusPercentages[status] = (statusCounts[status] / totalCount) * 100;
     }
 
-    res.json(chartData);
+    res.json(statusPercentages);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 
 // Handle both new journal submissions and revisions
