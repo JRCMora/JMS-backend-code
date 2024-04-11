@@ -510,10 +510,12 @@ app.get('/journal-status-statistics', async (req, res) => {
       }
     });
 
-    // Format data for ngx-charts
+    // Calculate percentages
+    const totalCount = journals.length;
     const chartData = Object.keys(statusCounts).map(status => ({
       name: status,
-      value: statusCounts[status]
+      value: statusCounts[status],
+      percentage: (statusCounts[status] / totalCount) * 100
     }));
 
     res.json(chartData);
