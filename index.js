@@ -494,6 +494,37 @@ app.get('/journals', async (req, res) => {
   }
 });
 
+// Route to fetch journal status statistics
+app.get('/journal-status-statistics', async (req, res) => {
+  try {
+    // Fetch all journals from the database
+    const journals = await Journal.find();
+    
+    // Calculate statistics
+    const statusCounts = {};
+    journals.forEach(journal => {
+      if (statusCounts[journal.status]) {
+        statusCounts[journal.status]++;
+      } else {
+        statusCounts[journal.status] = 1;
+      }
+    });
+
+    // Calculate percentages
+    const totalCount = journals.length;
+    const statusPercentages = {};
+    for (const status in statusCounts) {
+      statusPercentages[status] = (statusCounts[status] / totalCount) * 100;
+    }
+
+    res.json(statusPercentages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 // Handle both new journal submissions and revisions
 app.post('/journals', upload.single('journalFile'), async (req, res) => {
   try {
