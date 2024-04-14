@@ -515,7 +515,7 @@ app.get('/journal-status-statistics', async (req, res) => {
     const chartData = Object.keys(statusCounts).map(status => ({
       name: status,
       value: statusCounts[status],
-      percentage: (statusCounts[status] / totalCount) * 100
+      // percentage: (statusCounts[status] / totalCount) * 100
     }));
 
     res.json(chartData);
