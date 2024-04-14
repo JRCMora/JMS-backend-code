@@ -536,6 +536,14 @@ app.get('/total-users', async (req, res) => {
   }
 });
 
+app.get('/total-rubrics', async (req, res) => {
+  try {
+    const rubricsCount = await Rubric.countDocuments();
+    res.json({totalRubrics: rubricsCount});
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Handle both new journal submissions and revisions
 app.post('/journals', upload.single('journalFile'), async (req, res) => {
