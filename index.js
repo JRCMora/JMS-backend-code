@@ -494,7 +494,6 @@ app.get('/journals', async (req, res) => {
   }
 });
 
-// Route to fetch journal status statistics
 app.get('/journal-status-statistics', async (req, res) => {
   try {
     // Fetch all journals from the database
@@ -503,10 +502,12 @@ app.get('/journal-status-statistics', async (req, res) => {
     // Calculate statistics
     const statusCounts = {};
     journals.forEach(journal => {
-      if (statusCounts[journal.status]) {
-        statusCounts[journal.status]++;
+      // Merge "Under Review (Revision)" and "Under Review" into a single category
+      const status = journal.status === 'Under Review (Revision)' ? 'Under Review' : journal.status;
+      if (statusCounts[status]) {
+        statusCounts[status]++;
       } else {
-        statusCounts[journal.status] = 1;
+        statusCounts[status] = 1;
       }
     });
 
@@ -524,6 +525,7 @@ app.get('/journal-status-statistics', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 
 
