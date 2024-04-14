@@ -526,7 +526,15 @@ app.get('/journal-status-statistics', async (req, res) => {
   }
 });
 
-
+// Retrieve the total number of users
+app.get('/total-users', async (req, res) => {
+  try {
+    const usersCount = await User.countDocuments();
+    res.json({ totalUsers: usersCount });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 // Handle both new journal submissions and revisions
