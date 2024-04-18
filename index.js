@@ -613,7 +613,7 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       await Promise.all(notificationPromises);
 
       // Send notification to admins
-      const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+      const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } });
       const adminNotificationPromises = admins.map(admin => {
         return Notification.create({
           recipient: admin._id, // Assuming admin has a unique ID
@@ -799,7 +799,7 @@ app.put('/notifications/:notificationId/mark-as-read', async (req, res) => {
 app.post('/admin-notifications', async (req, res) => {
   try {
     // Retrieve all admins from the database
-    const admins = await User.find({ role: 'admin' }); // Assuming you have a User model with a 'role' field
+    const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } }); // Assuming you have a User model with a 'role' field
 
     // Create notifications for each admin
     const notificationPromises = admins.map(admin => {
@@ -890,7 +890,7 @@ app.post('/journals/:journalId/submit-feedback', async (req, res) => {
           message: `The status of your journal "${journal.journalTitle}" has been updated to "${journal.status}".`,
           status: 'unread'
         });
-        const admins = await User.find({ role: 'admin' });
+        const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } });
         const notificationPromises = admins.map(admin => {
           return Notification.create({
             recipient: admin._id,
