@@ -24,8 +24,8 @@ const userSchema = new mongoose.Schema({
   },
   verificationToken: String,
   verificationTokenExpires: Date,
-  resetPasswordToken: String, // Add resetPasswordToken field
-  resetPasswordExpires: Date // Add resetPasswordExpires field
+  resetPasswordToken: String, 
+  resetPasswordExpires: Date
 });
 
 module.exports = mongoose.model('User', userSchema);

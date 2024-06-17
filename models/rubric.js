@@ -1,4 +1,3 @@
-// models/rubric.js
 
 const mongoose = require('mongoose');
 

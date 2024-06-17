@@ -25,10 +25,9 @@ const { put } = require('@vercel/blob');
 const containerName = 'jms-uploads';
 
 
-// Multer configuration
 const upload = multer({
-  storage: multer.memoryStorage(), // Store files in memory for now
-  limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB (adjust as needed)
+  storage: multer.memoryStorage(), 
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
     // Check if the uploaded file is a PDF
     if (file.mimetype !== 'application/pdf') {
@@ -79,7 +78,6 @@ app.put('/users/:userId', async (req, res) => {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
 
-    // Find the user by ID in the database
     let user = await User.findById(userId);
 
     // Check if the user exists
@@ -87,16 +85,12 @@ app.put('/users/:userId', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Update user data
     user.role = userData.role;
 
-    // Save the updated user data
     user = await user.save();
 
-    // Send the updated user data as the response
     res.json(user);
   } catch (error) {
-    // Handle any errors that occur during the process
     console.error('Error updating user:', error);
     res.status(500).json({ error: 'Failed to update user' });
   }
@@ -107,7 +101,6 @@ app.put('/users/:userId', async (req, res) => {
 app.delete('/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    // Delete the user by ID
     await User.findByIdAndDelete(userId);
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
@@ -115,7 +108,7 @@ app.delete('/users/:userId', async (req, res) => {
   }
 });
 
-// Add a route to delete a journal by its ID
+// Delete a journal by its ID
 app.delete('/journals/:journalId', async (req, res) => {
   try {
     const { journalId } = req.params;
@@ -134,7 +127,7 @@ app.delete('/journals/:journalId', async (req, res) => {
   }
 });
 
-// Add route to create a rubric
+// Create a rubric
 app.post('/rubrics', async (req, res) => {
   try {
     const rubric = await Rubric.create(req.body);
@@ -145,7 +138,7 @@ app.post('/rubrics', async (req, res) => {
   }
 });
 
-// Add route to get all rubrics
+// Get all rubrics
 app.get('/rubrics', async (req, res) => {
   try {
     const rubrics = await Rubric.find();
@@ -156,7 +149,7 @@ app.get('/rubrics', async (req, res) => {
   }
 });
 
-// Add route to get a single rubric by its ID
+// Get a single rubric by its ID
 app.get('/rubrics/:rubricId', async (req, res) => {
   try {
     const { rubricId } = req.params;
@@ -183,13 +176,12 @@ app.delete('/rubrics/:rubricId', async (req, res) => {
   }
 });
 
-// Add a route to change a user's password
+// Change a user's password
 app.post('/users/:userId/change-password', async (req, res) => {
   try {
     const { userId } = req.params;
     const { currentPassword, newPassword } = req.body;
 
-    // Find the user by ID in the database
     const user = await User.findById(userId);
 
     // Check if the user exists
@@ -203,23 +195,20 @@ app.post('/users/:userId/change-password', async (req, res) => {
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
 
-    // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update the user's password in the database
     user.password = hashedPassword;
     await user.save();
 
-    // Send a success response
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
-    // Handle any errors that occur during the process
     console.error('Error changing password:', error);
     res.status(500).json({ error: 'Failed to change password' });
   }
 });
 
-// Add a route to get a user by their userId
+// Get a user by their userId
 app.get('/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -232,10 +221,8 @@ app.get('/users/:userId', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // If the user is found, send their details as the response
     res.json(user);
   } catch (error) {
-    // Handle any errors that occur during the process
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Failed to fetch user' });
   }
@@ -244,7 +231,7 @@ app.get('/users/:userId', async (req, res) => {
 
 
 
-// Modify the register route to include email validation
+// Register user
 app.post('/register', async (req, res) => {
   try {
     const { email, firstName, lastName, password, role } = req.body;
@@ -261,7 +248,6 @@ app.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Email already exists' });
     }
 
-    // Hash the password before saving it to the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate a unique verification token using Crypto
@@ -300,7 +286,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Route to Verify Token
+// Verify Email Token
 app.get('/verify/:token', async (req, res) => {
   try {
     const { token } = req.params;
@@ -328,7 +314,7 @@ app.get('/verify/:token', async (req, res) => {
   }
 });
 
-// Add a route to resend verification email
+// Resend verification email
 app.post('/resend-verification-email', async (req, res) => {
   try {
     const { email } = req.body;
@@ -414,7 +400,7 @@ app.post('/forgot-password', async (req, res) => {
   }
 });
 
-// Add the following endpoint to handle password reset
+// Password reset token
 app.post('/reset-password/:resetToken', async (req, res) => {
   try {
     const { resetToken } = req.params;
@@ -431,7 +417,6 @@ app.post('/reset-password/:resetToken', async (req, res) => {
       return res.status(400).json({ error: 'Reset token has expired' });
     }
 
-    // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update user's password and clear reset token
@@ -564,24 +549,23 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded.' });
     }
 
-    const file = req.file; // Access the uploaded file details
+    const file = req.file;
 
     // Upload the file to Vercel Blob using read-write token
     const blobName = `${Date.now()}-${file.originalname}`;
-    console.log(blobName); // Create a unique blob name
+    console.log(blobName); 
     const uploadResponse = await put(blobName, file.buffer, {
-      token: process.env.BLOB_READ_WRITE_TOKEN, // Use read-write token for authentication
-      contentType: file.mimetype, // Optional: Specify content type
-      access: 'public', // Optional: Set access permissions
+      token: process.env.BLOB_READ_WRITE_TOKEN, 
+      contentType: file.mimetype, 
+      access: 'public', 
     });
     console.log(uploadResponse);
 
     if (!uploadResponse || uploadResponse.error) {
-      // Handle the error appropriately
       return res.status(500).json({ error: 'Failed to upload file to Vercel Blob storage' });
     }
 
-    // If journalId is provided, it means this is a revised journal
+    // If journalId is provided, it means it is a revised journal
     if (journalId) {
       // Update the existing journal entry in the database with the revised details
       await Journal.findOneAndUpdate(
@@ -594,8 +578,8 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
             filePath: `vercel-blob:${containerName}/${blobName}`,
             downloadUrl: uploadResponse.downloadUrl,
             submittedBy: userId,
-            reviewComments: [], // Clear reviewComments array
-            reviewerChoices: [] // Clear reviewerChoices array
+            reviewComments: [],
+            reviewerChoices: []
           }
         }
       );
@@ -605,9 +589,9 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       const reviewers = journal.reviewers;
       const notificationPromises = reviewers.map(reviewer => {
         return Notification.create({
-          recipient: reviewer._id, // Assign notification to reviewer
+          recipient: reviewer._id, 
           message: `A revised version of the journal '${journalTitle}' is assigned to you for review.`,
-          status: 'unread' // Set the status as unread
+          status: 'unread'
         });
       });
       await Promise.all(notificationPromises);
@@ -616,9 +600,9 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } });
       const adminNotificationPromises = admins.map(admin => {
         return Notification.create({
-          recipient: admin._id, // Assuming admin has a unique ID
+          recipient: admin._id,
           message: `A revised version of the journal '${journalTitle}' has been submitted.`,
-          status: 'unread' // Set the status as unread
+          status: 'unread'
         });
       });
       await Promise.all(adminNotificationPromises);
@@ -641,12 +625,12 @@ app.post('/journals', upload.single('journalFile'), async (req, res) => {
       res.json({ message: 'Journal submitted successfully', downloadUrl: uploadResponse.downloadUrl });
     }
   } catch (error) {
-    console.error(error); // Log the error for debugging
+    console.error(error); 
     res.status(500).json({ error: 'An error occurred during journal submission' });
   }
 });
 
-// Add a route to fetch journals submitted by a specific user
+// Fetch journals submitted by a specific user
 app.get('/user/:userId/journals', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -660,7 +644,7 @@ app.get('/user/:userId/journals', async (req, res) => {
   }
 });
 
-// Add a route to update journal status
+// Update journal status
 app.put('/journals/:journalId/update-status', async (req, res) => {
   try {
     const { journalId } = req.params;
@@ -690,7 +674,7 @@ app.put('/journals/:journalId/update-status', async (req, res) => {
 });
 
 
-// Add a route to retrieve a single journal by its ID
+// Retrieve a single journal by its ID
 app.get('/journals/:journalId', async (req, res) => {
   try {
     const { journalId } = req.params;
@@ -716,18 +700,18 @@ app.put('/journals/:journalId', async (req, res) => {
       return res.status(404).json({ message: 'Journal not found' });
     }
 
-    res.json(updatedJournal); // Return the updated journal
+    res.json(updatedJournal);
   } catch (error) {
     console.error('Error updating journal:', error);
-    res.status(500).json({ message: 'Internal server error' }); // Handle server error
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Add a route for assigning reviewers to journals
+// Assigning reviewers to journals
 app.post('/journals/:journalId/assign-reviewers', async (req, res) => {
   try {
     const { journalId } = req.params;
-    const { reviewerIds, rubricId } = req.body; // Retrieve the array of selected reviewer IDs and rubricId from the request body
+    const { reviewerIds, rubricId } = req.body; 
 
     // Check if journalId is a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(journalId)) {
@@ -749,7 +733,7 @@ app.post('/journals/:journalId/assign-reviewers', async (req, res) => {
 
     // Update the reviewers array with the IDs of the selected reviewers
     journal.reviewers = reviewerIds;
-    journal.rubricId = rubricId; // Assign the rubricId to the journal
+    journal.rubricId = rubricId;
     await journal.save();
 
     // Update the status of the reviewers to 'Assigned'
@@ -759,7 +743,7 @@ app.post('/journals/:journalId/assign-reviewers', async (req, res) => {
     const notifications = reviewerIds.map(reviewerId => new Notification({
       recipient: reviewerId,
       message: `You have been assigned to review the journal "${journal.journalTitle}"`,
-      journalId: journal._id // Include journalId in the notification
+      journalId: journal._id
     }));
     await Notification.insertMany(notifications);
 
@@ -799,21 +783,20 @@ app.put('/notifications/:notificationId/mark-as-read', async (req, res) => {
 app.post('/admin-notifications', async (req, res) => {
   try {
     // Retrieve all admins from the database
-    const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } }); // Assuming you have a User model with a 'role' field
+    const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } });
 
     // Create notifications for each admin
     const notificationPromises = admins.map(admin => {
       return Notification.create({
-        recipient: admin._id, // Assuming admin has a unique ID
-        message: 'A new journal has been submitted.', // Customize your message
-        status: 'unread' // Set the status as unread
+        recipient: admin._id,
+        message: 'A new journal has been submitted.', 
+        status: 'unread'
       });
     });
 
     // Wait for all notifications to be created
     await Promise.all(notificationPromises);
 
-    // Send response
     res.json({ message: 'Admin notifications sent successfully' });
   } catch (error) {
     console.error('Error sending admin notifications:', error);
@@ -822,7 +805,7 @@ app.post('/admin-notifications', async (req, res) => {
 });
 
 
-// Modify the route to accept an array of reviewer IDs
+// Route to accept an array of reviewer IDs
 app.post('/user/reviewers', async (req, res) => {
   try {
     const { reviewerIds } = req.body;
@@ -836,7 +819,7 @@ app.post('/user/reviewers', async (req, res) => {
   }
 });
 
-// Add a route to fetch assigned journals for each reviewer
+// Fetch assigned journals for each reviewer
 app.get('/user/reviewers/:userId/assigned-journals', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -856,7 +839,7 @@ app.get('/user/reviewers/:userId/assigned-journals', async (req, res) => {
   }
 });
 
-// Add a route to submit feedback and update journal status
+// Submit feedback and update journal status
 app.post('/journals/:journalId/submit-feedback', async (req, res) => {
   try {
     const { journalId } = req.params;
@@ -872,7 +855,7 @@ app.post('/journals/:journalId/submit-feedback', async (req, res) => {
     if (previousFeedbackIndex !== -1) {
       // If the reviewer has provided feedback before, update the existing feedback
       journal.reviewComments[previousFeedbackIndex].comment = feedback;
-      // Also update the choice made by the reviewer
+      // Update the choice made by the reviewer
       journal.reviewerChoices[previousFeedbackIndex].choice = choice;
     } else {
       // If the reviewer is providing feedback for the first time, add a new entry
@@ -929,7 +912,7 @@ app.post('/journals/:journalId/submit-consolidated-feedback', async (req, res) =
     // Send notification to the user who submitted the journal
     const notification = await Notification.create({
       recipient: journal.submittedBy._id,
-      message: `The status of your journal "${journal.journalTitle}" has been updated to "${adminChoice}".`, // Customize your message
+      message: `The status of your journal "${journal.journalTitle}" has been updated to "${adminChoice}".`,
       status: 'unread'
     });
 
@@ -939,7 +922,7 @@ app.post('/journals/:journalId/submit-consolidated-feedback', async (req, res) =
   }
 });
 
-// Add a route to fetch consolidated feedback for a specific journal
+// Fetch consolidated feedback for a specific journal
 app.get('/journals/:journalId/consolidated-feedback', async (req, res) => {
   try {
     const { journalId } = req.params;
@@ -961,7 +944,7 @@ app.get('/journals/:journalId/consolidated-feedback', async (req, res) => {
 });
 
 
-// Add a route to fetch consolidate feedback for a journal
+// Fetch consolidate feedback for a journal
 app.get('/journals/:journalId/consolidate-feedback', async (req, res) => {
   try {
     const { journalId } = req.params;
@@ -998,7 +981,7 @@ app.get('/journals/:journalId/consolidate-feedback', async (req, res) => {
 });
 
 
-// Add a route to check if the email is already registered
+// Check if the email is already registered
 app.post('/check-email', async (req, res) => {
   try {
     const { email } = req.body;
